@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal del Operador - Flota de Drones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse-red {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+            50% { border-color: rgba(239, 68, 68, 0.3); box-shadow: 0 0 5px rgba(239, 68, 68, 0.1); }
+        }
+        .battery-danger {
+            animation: pulse-red 1.8s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-drone-front text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-wide">Portal del Operador</h1>
+                    <p class="text-xs text-slate-400">Estado global de la flota de drones en tiempo real</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <span id="connection-status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-ping"></span>
+                    Conectado a service-drones (5001)
+                </span>
+                <button onclick="cargarDrones()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Dashboard Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-xl">
+                <div class="text-xs font-semibold uppercase text-slate-400">Total Flota</div>
+                <div class="text-3xl font-extrabold text-white mt-1" id="stat-total">0</div>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-xl">
+                <div class="text-xs font-semibold uppercase text-emerald-400">Disponibles</div>
+                <div class="text-3xl font-extrabold text-emerald-400 mt-1" id="stat-disponibles">0</div>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-xl">
+                <div class="text-xs font-semibold uppercase text-amber-400">En Misión</div>
+                <div class="text-3xl font-extrabold text-amber-400 mt-1" id="stat-mision">0</div>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-xl">
+                <div class="text-xs font-semibold uppercase text-rose-400">Alerta / Batería Baja (&lt;20%)</div>
+                <div class="text-3xl font-extrabold text-rose-400 mt-1" id="stat-alerta">0</div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 class="text-lg font-bold text-slate-200">Unidades de la Flota</h2>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="filtrarDrones('TODOS')" class="filtro-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white">Todos</button>
+                <button onclick="filtrarDrones('DISPONIBLE')" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Disponibles</button>
+                <button onclick="filtrarDrones('EN_MISION')" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">En Misión</button>
+                <button onclick="filtrarDrones('CRITICO')" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Críticos / Mantenimiento</button>
+            </div>
+        </div>
+
+        <!-- Grid de Tarjetas de Drones -->
+        <div id="drones-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
