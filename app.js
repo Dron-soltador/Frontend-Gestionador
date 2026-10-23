@@ -1,5 +1,5 @@
 ﻿const API_URL = 'http://localhost:5001/drones';
-
+//correccion
 let mockDrones = [
     { id: 1, modelo: "DJI Matrice 300 RTK", capacidad_maxima_kg: 2.7, bateria: 85, estado: "DISPONIBLE" },
     { id: 2, modelo: "Flycart 30 Heavy", capacidad_maxima_kg: 30.0, bateria: 14, estado: "MANTENIMIENTO" },
