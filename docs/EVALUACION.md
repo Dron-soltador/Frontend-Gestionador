@@ -15,6 +15,8 @@
 | Aprobado (semáforo) | **NO** |
 | Código (LOC) | 591 |
 | Archivos de código | 2 |
+| Tests (archivos) | 0 |
+| Cobertura de líneas | no medible (mínimo 80%) |
 | Capas detectadas | ninguna |
 | Tope por duplicación | `DUP>=50%` → índice ≤ 15 |
 
@@ -132,15 +134,15 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 - **Por qué importa:** Piezas muy enlazadas hacen que un cambio se propague y que sea difícil reemplazar partes.
 - **Tu resultado:** **0** unidad(es) con acoplamiento alto _(máximo 2 por 1000 LOC)_
 
-### 14. Tests automatizados (Tests) — A REVISAR
+### 14. Cobertura de tests (Cob) — A REVISAR
 
-- **Qué mide:** Cantidad de archivos de test separados del código.
-- **Por qué importa:** Sin tests no hay red de seguridad: un cambio puede romper algo sin que se note hasta la demo.
-- **Tu resultado:** **0** archivo(s) de test _(mínimo 5)_
+- **Qué mide:** Porcentaje de líneas de código ejecutadas por la suite de tests (cobertura real, no cantidad de archivos de test).
+- **Por qué importa:** Un test que existe pero no ejecuta el código no protege de nada: la cobertura muestra qué partes quedan sin verificar.
+- **Tu resultado:** **no medible** (sin tests, sin runner o sin artefacto de cobertura) _(mínimo 80% de líneas)_
 - **Para investigar la causa:**
-    - ¿Se planificó escribir tests, o quedó siempre al final?
-    - ¿Qué parte del sistema es más riesgosa de tocar y por qué no está cubierta?
-    - ¿Se sabe qué se rompería si algo cambiara?
+    - ¿Qué módulos o ramas del sistema nunca se ejecutan en los tests?
+    - ¿Los tests prueban el camino principal y los errores, o solo el caso feliz?
+    - ¿La suite se puede correr en CI sin base de datos ni servicios externos?
 
 ### 15. Vistas del frontend (Vistas) — A REVISAR
 
@@ -161,7 +163,7 @@ Criterios que hoy están en rojo y qué habría que cambiar para alcanzar el niv
 | Índice de calidad de servicios (indice) | índice **7/100** | mínimo 60 | Subir el índice a ≥60 corrigiendo primero las señales de más peso: duplicación, secretos, SQL y capas. |
 | Duplicación (DRY) (duplicacion) | **100.0%** de duplicación | máximo 15% | Unificar los bloques repetidos en un módulo o función compartida; apuntar a ≤15%. |
 | Separación en capas (capas) | **0** capa(s) detectada(s): ninguna | mínimo 2 capas (a partir de 150 LOC) | Separar el código en al menos 2 capas con responsabilidades claras (rutas/controladores, servicios, modelos o acceso a datos). |
-| Tests automatizados (Tests) | **0** archivo(s) de test | mínimo 5 | Agregar tests de los flujos principales hasta llegar a 5 archivos. |
+| Cobertura de tests (Cob) | **no medible** (sin tests, sin runner o sin artefacto de cobertura) | mínimo 80% de líneas | Publicar cobertura (o correr la suite con coverage) y cubrir ≥80% de líneas. |
 | Vistas del frontend (Vistas) | **0** vista(s)/componente(s) | mínimo 8 | Cubrir las pantallas del enunciado hasta llegar a 8 vistas/componentes. |
 
 > Empezá por las señales de seguridad (**SEC**, **SQL**) y por la **duplicación**: son las que más pesan en el índice y las más rápidas de verificar a ojo.
