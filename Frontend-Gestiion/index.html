@@ -25,21 +25,21 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-wide">Portal del Operador</h1>
-                    <p class="text-xs text-slate-400">Gestión y control de la flota en tiempo real</p>
+                    <p class="text-xs text-slate-400">Estado global de la flota de drones en tiempo real</p>
                 </div>
             </div>
             
             <div class="flex items-center space-x-3">
                 <span id="connection-status" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-ping"></span>
-                    Conectado (5001)
+                    Conectado a service-drones (5001)
                 </span>
                 
                 <button type="button" onclick="window.abrirModalRegistrar()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-plus"></i> Registrar Dron
                 </button>
 
-                <button type="button" onclick="window.cargarDrones()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-colors">
+                <button type="button" onclick="window.cargarTodo()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-colors">
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </button>
             </div>
@@ -47,9 +47,13 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Summary Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Banner de Alertas -->
+        <div id="alert-container" class="hidden"></div>
+
+        <!-- Dashboard Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-xl">
                 <div class="text-xs font-semibold uppercase text-slate-400">Total Flota</div>
                 <div class="text-3xl font-extrabold text-white mt-1" id="stat-total">0</div>
@@ -59,29 +63,60 @@
                 <div class="text-3xl font-extrabold text-emerald-400 mt-1" id="stat-disponibles">0</div>
             </div>
             <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-xl">
-                <div class="text-xs font-semibold uppercase text-amber-400">En Misión / Cargando</div>
+                <div class="text-xs font-semibold uppercase text-amber-400">En Misión</div>
                 <div class="text-3xl font-extrabold text-amber-400 mt-1" id="stat-mision">0</div>
             </div>
             <div class="bg-slate-800/80 border border-slate-700 p-5 rounded-xl">
-                <div class="text-xs font-semibold uppercase text-rose-400">Alerta Batería (&lt;20%)</div>
+                <div class="text-xs font-semibold uppercase text-rose-400">Alerta / Batería Baja (&lt;20%)</div>
                 <div class="text-3xl font-extrabold text-rose-400 mt-1" id="stat-alerta">0</div>
             </div>
         </div>
 
-        <!-- Filtros -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h2 class="text-lg font-bold text-slate-200">Unidades de la Flota</h2>
-            <div class="flex flex-wrap gap-2">
-                <button type="button" onclick="window.filtrarDrones('TODOS', this)" class="filtro-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white">Todos</button>
-                <button type="button" onclick="window.filtrarDrones('DISPONIBLE', this)" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Disponibles</button>
-                <button type="button" onclick="window.filtrarDrones('EN_MISION', this)" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">En Misión</button>
-                <button type="button" onclick="window.filtrarDrones('CARGANDO', this)" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cargando</button>
-                <button type="button" onclick="window.filtrarDrones('CRITICO', this)" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Críticos / Mantenimiento</button>
+        <!-- SECCIÓN: Solicitudes de Envíos Pendientes -->
+        <section class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-packing text-blue-400"></i> Solicitudes de Envíos Pendientes
+                    </h2>
+                    <p class="text-xs text-slate-400">Revisión de paquetes en espera y asignación automatizada de drones</p>
+                </div>
+                <span id="stat-pedidos-pendientes" class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold px-3 py-1 rounded-full">
+                    0 Envíos Pendientes
+                </span>
             </div>
-        </div>
 
-        <!-- Grid -->
-        <div id="drones-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="text-xs uppercase bg-slate-900/60 text-slate-400 border-b border-slate-700">
+                        <tr>
+                            <th class="py-3 px-4">ID Pedido</th>
+                            <th class="py-3 px-4">Destino / Cliente</th>
+                            <th class="py-3 px-4">Peso Paquete</th>
+                            <th class="py-3 px-4">Estado</th>
+                            <th class="py-3 px-4 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-pedidos-body" class="divide-y divide-slate-700/50">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: Flota de Drones -->
+        <section>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 class="text-lg font-bold text-slate-200">Unidades de la Flota</h2>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="window.filtrarDrones('TODOS', this)" class="filtro-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white">Todos</button>
+                    <button type="button" onclick="window.filtrarDrones('DISPONIBLE', this)" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Disponibles</button>
+                    <button type="button" onclick="window.filtrarDrones('EN_MISION', this)" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">En Misión</button>
+                    <button type="button" onclick="window.filtrarDrones('CRITICO', this)" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Críticos / Mantenimiento</button>
+                </div>
+            </div>
+
+            <div id="drones-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
     </main>
 
     <!-- MODAL 1: Registrar Dron -->
