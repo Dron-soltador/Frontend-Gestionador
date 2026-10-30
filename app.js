@@ -1,18 +1,5 @@
-﻿const API_DRONES_URL = 'http://localhost:5001/drones';
-const API_DESPACHADOR_URL = 'http://localhost:5002/despachar';
-const API_PEDIDOS_URL = 'http://localhost:5000/pedidos';
-
-// Persistencia local en navegador (localStorage)
-let localAddedDrones = JSON.parse(localStorage.getItem('localAddedDrones') || '[]');
-let localModifiedDrones = JSON.parse(localStorage.getItem('localModifiedDrones') || '{}');
-let localModifiedPedidos = JSON.parse(localStorage.getItem('localModifiedPedidos') || '{}');
-
-function guardarPersistencia() {
-    localStorage.setItem('localAddedDrones', JSON.stringify(localAddedDrones));
-    localStorage.setItem('localModifiedDrones', JSON.stringify(localModifiedDrones));
-    localStorage.setItem('localModifiedPedidos', JSON.stringify(localModifiedPedidos));
-}
-
+﻿const API_URL = 'http://localhost:5001/drones';
+//correccion
 let mockDrones = [
     { id: 1, modelo: "DJI Matrice 300 RTK", capacidad_maxima_kg: 2.7, bateria: 85, estado: "DISPONIBLE" },
     { id: 2, modelo: "Flycart 30 Heavy", capacidad_maxima_kg: 30.0, bateria: 100, estado: "DISPONIBLE" },
