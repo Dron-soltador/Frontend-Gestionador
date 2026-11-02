@@ -3,7 +3,7 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación III (RepoSense + análisis de calidad + constancia). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-10-29.
+> Generado: 2026-11-02.
 
 ## 1. Veredicto
 
@@ -13,7 +13,7 @@
 | Índice de calidad de servicios | **15/100** (mínimo 60) |
 | Criterios cumplidos | **10/14** |
 | Aprobado (semáforo) | **NO** |
-| Código (LOC) | 591 |
+| Código (LOC) | 954 |
 | Archivos de código | 2 |
 | Tests (archivos) | 0 |
 | Cobertura de líneas | no aplica (frontend sin herramienta de cobertura E2E) (mínimo 80%) |
@@ -26,7 +26,7 @@
 
 | Autor | Commits | Código (LOC) | Tests (LOC) | Docs (LOC) | Días activos | % del código |
 |---|---:|---:|---:|---:|---:|---:|
-| IkerSalinas | 4 | 874 | 0 | 107 | 5 | 100% |
+| IkerSalinas | 5 | 1,560 | 0 | 107 | 6 | 100% |
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis de calidad (que mira solo el estado de `main`)._
 
@@ -58,7 +58,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Porcentaje de bloques de código repetidos (similitud) en el repositorio.
 - **Por qué importa:** Cada copia se mantiene por separado: un arreglo hay que repetirlo y los defectos se multiplican.
-- **Tu resultado:** **100.0%** de duplicación _(máximo 15%)_
+- **Tu resultado:** **98.4%** de duplicación _(máximo 15%)_
 - **Para investigar la causa:**
     - ¿El trabajo se repartió por pantallas o archivos y se integró copiando y pegando bloques?
     - ¿Qué zonas del sistema cambiaron juntas más de una vez (señal de lógica compartida)?
@@ -120,13 +120,13 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Complejidad ciclomática: cantidad de caminos posibles dentro de una función (condicionales, bucles, casos).
 - **Por qué importa:** Muchos caminos = difícil de seguir y de probar; suelen esconderse casos sin cubrir.
-- **Tu resultado:** **2** bloque(s) de complejidad alta _(máximo 5 por 1000 LOC (tenés 591 LOC))_
+- **Tu resultado:** **4** bloque(s) de complejidad alta _(máximo 5 por 1000 LOC (tenés 954 LOC))_
 
 ### 12. Funciones/métodos largos o con muchos parámetros (Tam) — OK
 
 - **Qué mide:** Tamaño de las funciones/métodos y cantidad de parámetros.
 - **Por qué importa:** Una función que hace varias cosas cuesta leerla, nombrarla y reutilizarla.
-- **Tu resultado:** **2** función/método(s) largos o con muchos parámetros _(máximo 10 por 1000 LOC)_
+- **Tu resultado:** **4** función/método(s) largos o con muchos parámetros _(máximo 10 por 1000 LOC)_
 
 ### 13. Acoplamiento alto (Acop) — OK
 
@@ -146,16 +146,16 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ## 5. Qué falta para aprobar
 
-Criterios que hoy están en rojo y qué habría que cambiar para alcanzar el nivel de aprobación (perfil `exigente`):
+Criterios que hoy están en rojo y, para cada uno, una explicación breve de **cómo corregirlo** hasta alcanzar el nivel de aprobación (perfil `exigente`):
 
-| Criterio | Resultado actual | Meta | Qué arreglar |
+| Criterio | Resultado actual | Meta | Cómo corregirlo |
 |---|---|---|---|
-| Índice de calidad de servicios (indice) | índice **15/100** | mínimo 60 | Subir el índice a ≥60 corrigiendo primero las señales de más peso: duplicación, secretos, SQL y capas. |
-| Duplicación (DRY) (duplicacion) | **100.0%** de duplicación | máximo 15% | Unificar los bloques repetidos en un módulo o función compartida; apuntar a ≤15%. |
-| Separación en capas (capas) | **0** capa(s) detectada(s): ninguna | mínimo 2 capas (a partir de 150 LOC) | Separar el código en al menos 2 capas con responsabilidades claras (rutas/controladores, servicios, modelos o acceso a datos). |
-| Vistas del frontend (Vistas) | **0** vista(s)/componente(s) | mínimo 8 | Cubrir las pantallas del enunciado hasta llegar a 8 vistas/componentes. |
+| Índice de calidad de servicios (indice) | índice **15/100** | mínimo 60 | El índice es un resumen: sube al corregir los criterios en rojo. Empezá por los de más peso (duplicación ≤15%, SEC y SQL en 0, capas ≥2) y volvé a medir; la meta es ≥60. |
+| Duplicación (DRY) (duplicacion) | **98.4%** de duplicación | máximo 15% | Ubicá los bloques repetidos (el anexo lista los archivos), llevá la lógica común a una función o módulo compartido y hacé que todos lo usen. Cada copia eliminada baja el porcentaje; meta ≤15%. |
+| Separación en capas (capas) | **0** capa(s) detectada(s): ninguna | mínimo 2 capas (a partir de 150 LOC) | Separá el código en al menos 2 capas con responsabilidades claras: presentación (`routes/`, `controllers/`), lógica (`services/`, `domain/`) y datos (`models/`, `repositories/`). Mové cada archivo a la capa que le corresponde en vez de dejar todo en la raíz. |
+| Vistas del frontend (Vistas) | **0** vista(s)/componente(s) | mínimo 8 | Agregá las pantallas/componentes del enunciado que faltan y conectalas a la capa de servicios hasta llegar a 8 vistas. |
 
-> Empezá por las señales de seguridad (**SEC**, **SQL**) y por la **duplicación**: son las que más pesan en el índice y las más rápidas de verificar a ojo.
+> Empezá por las señales de seguridad (**SEC**, **SQL**) y por la **duplicación**: son las que más pesan en el índice y las más rápidas de verificar a ojo. Después de corregir, volvé a correr la medición: el semáforo se recalcula sobre `main`.
 
 ## 6. Anexo: dónde mirar
 
