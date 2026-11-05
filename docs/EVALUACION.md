@@ -3,24 +3,24 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación III (RepoSense + análisis de calidad + constancia). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-11-03.
+> Generado: 2026-11-05.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
 | Tipo de proyecto | frontend |
-| Índice de calidad de servicios | **15/100** (mínimo 60) |
+| Índice de calidad de servicios | **15/100** (mínimo 50) |
 | Criterios cumplidos | **10/14** |
 | Aprobado (semáforo) | **NO** |
 | Código (LOC) | 954 |
 | Archivos de código | 2 |
 | Tests (archivos) | 0 |
-| Cobertura de líneas | no aplica (frontend sin herramienta de cobertura E2E) (mínimo 80%) |
+| Cobertura de líneas | no aplica (frontend sin herramienta de cobertura E2E) |
 | Capas detectadas | ninguna |
 | Tope por duplicación | `DUP>=50%` → índice ≤ 15 |
 
-> **Aprobado** exige cumplir **todos** los criterios del semáforo. No es una nota: sirve para ordenar y priorizar la revisión.
+> **Aprobado** exige las compuertas críticas (**SEC**, **SQL**, **capas**, **índice ≥ 50** y **cobertura ≥ 80 %** cuando aplica) y tolera hasta **3 criterios en rojo** (12/15). No es una nota: sirve para ordenar y priorizar la revisión.
 
 ## 2. Autoría (RepoSense)
 
@@ -36,7 +36,7 @@
 
 | Alumno | Sesiones | Cumplimiento | Pausa | Recencia | IC | Nivel | Para subir de nivel |
 |---|--:|--:|--:|--:|--:|--|--|
-| IkerSalinas | 7 | 32% | 30 d | 43% | **27** | No aprueba | Cumplimiento 32% (mín. 50%); Pausa 30 d (máx. 10 d); Recencia 43% (mín. 50%) |
+| IkerSalinas | 8 | 35% | 30 d | 57% | **31** | No aprueba | Cumplimiento 35% (mín. 50%) |
 
 > Para aprobar el IC: **2 sesiones por semana** sostenidas, sin pausas mayores a **10 días** y con actividad en las **últimas 2 semanas**. Se excluyen merges, bots y al docente. Zona horaria UTC-3.
 
@@ -48,7 +48,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Un resumen numérico (0-100) que combina todas las señales y métricas del análisis, con topes duros por duplicación.
 - **Por qué importa:** Ordena y prioriza la revisión: un índice bajo indica varias señales que conviene mirar juntas.
-- **Tu resultado:** índice **15/100** _(mínimo 60)_
+- **Tu resultado:** índice **15/100** _(mínimo 50)_
 - **Para investigar la causa:**
     - ¿En qué momento del proyecto se concentraron los problemas (arranque, integración de partes, cierre)?
     - ¿El índice bajó por muchas señales chicas o por una o dos graves?
@@ -138,22 +138,22 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Cantidad de vistas/componentes de pantalla del frontend.
 - **Por qué importa:** El frontend se mide por pantallas: pocas vistas sugiere poca cobertura de la interfaz pedida.
-- **Tu resultado:** **0** vista(s)/componente(s) _(mínimo 8)_
+- **Tu resultado:** **0** vista(s)/componente(s) _(mínimo 6)_
 - **Para investigar la causa:**
     - ¿La app cubre todas las pantallas del enunciado?
     - ¿Hay pantallas que resuelven todo con una única vista?
     - ¿Se priorizó la funcionalidad por sobre la navegación?
 
-## 5. Qué falta para aprobar
+## 5. Observaciones y qué falta
 
 Criterios que hoy están en rojo y, para cada uno, una explicación breve de **cómo corregirlo** hasta alcanzar el nivel de aprobación (perfil `exigente`):
 
-| Criterio | Resultado actual | Meta | Cómo corregirlo |
-|---|---|---|---|
-| Índice de calidad de servicios (indice) | índice **15/100** | mínimo 60 | El índice es un resumen: sube al corregir los criterios en rojo. Empezá por los de más peso (duplicación ≤15%, SEC y SQL en 0, capas ≥2) y volvé a medir; la meta es ≥60. |
-| Duplicación (DRY) (duplicacion) | **98.4%** de duplicación | máximo 15% | Ubicá los bloques repetidos (el anexo lista los archivos), llevá la lógica común a una función o módulo compartido y hacé que todos lo usen. Cada copia eliminada baja el porcentaje; meta ≤15%. |
-| Separación en capas (capas) | **0** capa(s) detectada(s): ninguna | mínimo 2 capas (a partir de 150 LOC) | Separá el código en al menos 2 capas con responsabilidades claras: presentación (`routes/`, `controllers/`), lógica (`services/`, `domain/`) y datos (`models/`, `repositories/`). Mové cada archivo a la capa que le corresponde en vez de dejar todo en la raíz. |
-| Vistas del frontend (Vistas) | **0** vista(s)/componente(s) | mínimo 8 | Agregá las pantallas/componentes del enunciado que faltan y conectalas a la capa de servicios hasta llegar a 8 vistas. |
+| Criterio | Resultado actual | Meta | Brecha | Cómo alcanzarlo |
+|---|---|---|---|---|
+| Índice de calidad de servicios (indice) | índice **15/100** | mínimo 50 | faltan 35 pts | El índice sólo penaliza lo que **excede** los umbrales de cada criterio: si tenés todo en verde, el índice es 100. Si está en rojo, mirá los hallazgos del anexo (archivo y línea) y corregí primero duplicación, SEC, SQL y capas. Meta del perfil exigente: ≥50. |
+| Duplicación (DRY) (duplicacion) | **98.4%** de duplicación | máximo 15% | sobran 83.4 pts | Ubicá los bloques repetidos (el anexo lista los archivos), llevá la lógica común a una función o módulo compartido y hacé que todos lo usen. Cada copia eliminada baja el porcentaje; meta ≤15%. |
+| Separación en capas (capas) | **0** capa(s) detectada(s): ninguna | mínimo 2 capas (a partir de 150 LOC) | hoy 0; el mínimo es 2 | Separá el código en al menos 2 capas con responsabilidades claras: presentación (`routes/`, `controllers/`), lógica (`services/`, `domain/`) y datos (`models/`, `repositories/`). Mové cada archivo a la capa que le corresponde en vez de dejar todo en la raíz. |
+| Vistas del frontend (Vistas) | **0** vista(s)/componente(s) | mínimo 6 | faltan 6 vista(s) | Agregá las pantallas/componentes del enunciado que faltan y conectalas a la capa de servicios hasta llegar a 6 vistas. |
 
 > Empezá por las señales de seguridad (**SEC**, **SQL**) y por la **duplicación**: son las que más pesan en el índice y las más rápidas de verificar a ojo. Después de corregir, volvé a correr la medición: el semáforo se recalcula sobre `main`.
 
