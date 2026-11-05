@@ -150,12 +150,14 @@ Criterios que hoy están en rojo y, para cada uno, una explicación breve de **c
 
 | Criterio | Resultado actual | Meta | Brecha | Cómo alcanzarlo |
 |---|---|---|---|---|
-| Índice de calidad de servicios (indice) | índice **15/100** | mínimo 50 | faltan 35 pts | El índice sólo penaliza lo que **excede** los umbrales de cada criterio: si tenés todo en verde, el índice es 100. Si está en rojo, mirá los hallazgos del anexo (archivo y línea) y corregí primero duplicación, SEC, SQL y capas. Meta del perfil exigente: ≥50. |
-| Duplicación (DRY) (duplicacion) | **98.4%** de duplicación | máximo 15% | sobran 83.4 pts | Ubicá los bloques repetidos (el anexo lista los archivos), llevá la lógica común a una función o módulo compartido y hacé que todos lo usen. Cada copia eliminada baja el porcentaje; meta ≤15%. |
+| Índice de calidad de servicios (indice) | índice **15/100** | mínimo 50 | faltan 35 pts | El índice sólo penaliza lo que **excede** los umbrales de cada criterio: si tenés todo en verde, el índice es 100. Si está en rojo, mirá la columna **Brecha** y los criterios en rojo; corregí primero duplicación, SEC, SQL y capas. Meta del perfil exigente: ≥50. |
+| Duplicación (DRY) (duplicacion) | **98.4%** de duplicación | máximo 15% | sobran 83.4 pts | Ubicá los bloques repetidos con `jscpd` o SonarQube, llevá la lógica común a una función o módulo compartido y hacé que todos lo usen. Cada copia eliminada baja el porcentaje; meta ≤15%. |
 | Separación en capas (capas) | **0** capa(s) detectada(s): ninguna | mínimo 2 capas (a partir de 150 LOC) | hoy 0; el mínimo es 2 | Separá el código en al menos 2 capas con responsabilidades claras: presentación (`routes/`, `controllers/`), lógica (`services/`, `domain/`) y datos (`models/`, `repositories/`). Mové cada archivo a la capa que le corresponde en vez de dejar todo en la raíz. |
 | Vistas del frontend (Vistas) | **0** vista(s)/componente(s) | mínimo 6 | faltan 6 vista(s) | Agregá las pantallas/componentes del enunciado que faltan y conectalas a la capa de servicios hasta llegar a 6 vistas. |
 
 > Empezá por las señales de seguridad (**SEC**, **SQL**) y por la **duplicación**: son las que más pesan en el índice y las más rápidas de verificar a ojo. Después de corregir, volvé a correr la medición: el semáforo se recalcula sobre `main`.
+
+> **Tests (informativo):** hoy tenés **0** archivo(s) de test; la meta es **5**, pero **no** es una compuerta del semáforo. Para acercarte, agregá tests de los flujos principales (servicios y endpoints) y corré la suite con coverage.
 
 ## 6. Anexo: dónde mirar
 
