@@ -216,7 +216,36 @@
             </form>
         </div>
     </div>
+    <!-- MODAL ASIGNAR DRON MANUALMENTE -->
+    <div id="modal-asignar" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
 
+            <div class="p-5 border-b border-slate-700 flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-blue-400"></i>
+                        Asignar Dron Manualmente
+                    </h3>
+                    <p id="asig-pedido-info" class="text-xs text-slate-400 font-mono mt-1"></p>
+                </div>
+                <button onclick="window.cerrarModalAsignar()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="asig-pedido-id">
+
+            <div id="asig-lista-drones" class="p-5 overflow-y-auto space-y-3 flex-1"></div>
+
+            <div class="p-4 border-t border-slate-700 flex justify-end">
+                <button onclick="window.cerrarModalAsignar()"
+                    class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-semibold px-4 py-2 rounded-lg">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <script src="app.js"></script>
 </body>
 </html>

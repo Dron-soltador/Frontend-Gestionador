@@ -1,5 +1,6 @@
 ﻿const API_DRONES_URL = 'http://localhost:5001/drones';
 const API_DESPACHADOR_BASE = 'http://localhost:5002';
+const DESCARGA_BATERIA_POR_ENTREGA = 5; // % de batería que gasta el dron al completar el viaje
 const SEGUNDOS_PARA_OCULTAR = 5; // segundos que un pedido ENTREGADO sigue visible antes de borrarse
 const entregadosRecientes = new Map(); // id -> { pedido, timeoutId }
 
@@ -238,82 +239,168 @@ function renderizarTablaPedidos() {
     });
 }
 
-// ASIGNAR DRON A PEDIDO -> el despachador lo pasa a EN_CAMINO
-window.asignarDron = async function(pedidoId) {
+// ============================================================
+// ASIGNACIÓN MANUAL DE DRON A PEDIDO
+// ============================================================
+
+// 1) Abre el modal con la lista de drones para elegir uno a mano
+window.abrirModalAsignar = function(pedidoId) {
     const pedido = todosLosPedidos.find(p => Number(p.id) === Number(pedidoId));
     if (!pedido) return;
 
     window.ocultarAlerta();
 
-    const dronesDisponibles = todosLosDrones.filter(d => (d.estado || '').toUpperCase() === 'DISPONIBLE' && Number(d.bateria ?? 0) >= 20);
-    const dronApto = dronesDisponibles.find(d => Number(d.capacidad_maxima_kg ?? 0) >= Number(pedido.peso_kg ?? 0));
+    document.getElementById('asig-pedido-id').value = pedidoId;
+    document.getElementById('asig-pedido-info').innerText =
+        `#PED-${pedidoId} · ${pedido.cliente || 'Cliente General'} · ${pedido.peso_kg} kg`;
 
-    if (!dronApto) {
-        const maxCap = Math.max(...todosLosDrones.map(d => Number(d.capacidad_maxima_kg ?? 0)), 0);
-        if (Number(pedido.peso_kg) > maxCap) {
-            window.mostrarAlerta('error', `[RECHAZO POR SOBREPESO] El paquete de ${pedido.peso_kg} kg excede la capacidad de la flota (${maxCap} kg).`);
-        } else {
-            window.mostrarAlerta('error', `[RECHAZO POR BATERÍA/DISPONIBILIDAD] No hay drones disponibles con batería >=20%.`);
-        }
+    const cont = document.getElementById('asig-lista-drones');
+    cont.innerHTML = '';
+
+    if (todosLosDrones.length === 0) {
+        cont.innerHTML = `<p class="text-center text-slate-500 py-6">No hay drones registrados.</p>`;
+    } else {
+        todosLosDrones.forEach(drone => {
+            const estado = (drone.estado || '').toUpperCase();
+            const bateria = Number(drone.bateria ?? 0);
+            const capacidad = Number(drone.capacidad_maxima_kg ?? 0);
+            const pesoPedido = Number(pedido.peso_kg ?? 0);
+
+            const motivoRechazo = [];
+            if (estado !== 'DISPONIBLE') motivoRechazo.push(`estado ${estado}`);
+            if (bateria < 20)          motivoRechazo.push(`batería ${bateria}% < 20%`);
+            if (capacidad < pesoPedido) motivoRechazo.push(`capacidad ${capacidad} kg < ${pesoPedido} kg`);
+
+            const apto = motivoRechazo.length === 0;
+
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.disabled = !apto;
+            card.className = apto
+                ? 'w-full text-left p-4 rounded-xl border-2 border-emerald-500/60 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all flex justify-between items-center cursor-pointer'
+                : 'w-full text-left p-4 rounded-xl border-2 border-slate-700 bg-slate-800/40 opacity-60 cursor-not-allowed flex justify-between items-center';
+
+            card.innerHTML = `
+                <div>
+                    <div class="font-bold text-white">#${drone.id} · ${drone.modelo || 'Dron'}</div>
+                    <div class="text-xs text-slate-400 mt-0.5">
+                        Cap: <b>${capacidad} kg</b> · Batería: <b>${bateria}%</b> · Estado: <b>${estado}</b>
+                    </div>
+                    ${apto
+                        ? `<div class="text-xs text-emerald-400 mt-1"><i class="fa-solid fa-check"></i> Apto para ${pesoPedido} kg</div>`
+                        : `<div class="text-xs text-rose-400 mt-1"><i class="fa-solid fa-xmark"></i> ${motivoRechazo.join(' · ')}</div>`}
+                </div>
+                ${apto
+                    ? `<i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>`
+                    : `<i class="fa-solid fa-ban text-rose-400 text-xl"></i>`}
+            `;
+
+            if (apto) {
+                card.onclick = () => window.confirmarAsignacion(drone.id, pedidoId);
+            }
+            cont.appendChild(card);
+        });
+    }
+
+    document.getElementById('modal-asignar').classList.remove('hidden');
+};
+
+window.cerrarModalAsignar = function() {
+    const el = document.getElementById('modal-asignar');
+    if (el) el.classList.add('hidden');
+};
+
+// 2) El operador ya eligió un dron → se despacha y se actualizan estados
+window.confirmarAsignacion = async function(dronId, pedidoId) {
+    const pedido = todosLosPedidos.find(p => Number(p.id) === Number(pedidoId));
+    const dron   = todosLosDrones.find(d => Number(d.id) === Number(dronId));
+    if (!pedido || !dron) return;
+
+    // Validación final por si el estado cambió entre abrir y confirmar
+    if ((dron.estado || '').toUpperCase() !== 'DISPONIBLE') {
+        window.mostrarAlerta('error', `El dron #${dron.id} ya no está disponible.`);
+        return;
+    }
+    if (Number(dron.capacidad_maxima_kg ?? 0) < Number(pedido.peso_kg ?? 0)) {
+        window.mostrarAlerta('error', `El dron #${dron.id} no soporta ${pedido.peso_kg} kg.`);
+        return;
+    }
+    if (Number(dron.bateria ?? 0) < 20) {
+        window.mostrarAlerta('error', `El dron #${dron.id} tiene batería insuficiente (<20%).`);
         return;
     }
 
-    // Primero el backend; solo si responde bien se actualiza la pantalla
     try {
-        await llamarDespachador('/despachar', 'POST', { pedido_id: pedidoId, dron_id: dronApto.id });
+        await llamarDespachador('/despachar', 'POST', { pedido_id: pedidoId, dron_id: dronId });
         await llamarDespachador(`/pedidos/${pedidoId}/en-camino`);
     } catch (error) {
-        console.warn('Error del despachador', error);
         window.mostrarAlerta('error', `[ERROR] No se pudo despachar el pedido #PED-${pedidoId}: ${error.message}`);
         return;
     }
 
-    dronApto.estado = 'EN_MISION';
-    localModifiedDrones[dronApto.id] = { estado: 'EN_MISION' };
+    // Estado del dron → EN_MISION
+    dron.estado = 'EN_MISION';
+    localModifiedDrones[dron.id] = { estado: 'EN_MISION' };
 
+    // Estado del pedido → EN_CAMINO con dron asignado
     pedido.estado = 'EN_CAMINO';
-    pedido.dron_id = dronApto.id;
-    localModifiedPedidos[pedidoId] = { dron_id: dronApto.id };
+    pedido.dron_id = dron.id;
+    localModifiedPedidos[pedidoId] = { dron_id: dron.id };
 
     guardarPersistencia();
+    window.cerrarModalAsignar();
 
     actualizarEstadisticas();
     renderizarGrillaDrones();
     renderizarTablaPedidos();
 
-    window.mostrarAlerta('éxito', `[ÉXITO] Dron #${dronApto.id} (${dronApto.modelo}) asignado al pedido #PED-${pedidoId}.`);
+    window.mostrarAlerta('éxito', `Dron #${dron.id} (${dron.modelo}) asignado manualmente al pedido #PED-${pedidoId}.`);
+
+    // Persistir el estado EN_MISION en el servicio de drones (best-effort)
+    fetch(`${API_DRONES_URL}/${dron.id}/telemetria`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'EN_MISION', bateria: Number(dron.bateria ?? 100) })
+    }).catch(err => console.warn('Servicio de drones offline (EN_MISION)', err));
 };
 
-// CONFIRMAR ENTREGA, LIBERAR DRON Y BORRAR EL PEDIDO DESPUES DE UNOS SEGUNDOS
 window.confirmarEntrega = async function(pedidoId) {
     const pedido = todosLosPedidos.find(p => Number(p.id) === Number(pedidoId));
     if (!pedido) return;
 
     window.ocultarAlerta();
 
-    // 1. Marcar ENTREGADO en el despachador (que actualiza la API remota)
     try {
         await llamarDespachador(`/pedidos/${pedidoId}/entregar`);
     } catch (error) {
-        console.warn('Error del despachador', error);
-        window.mostrarAlerta('error', `[ERROR] No se pudo marcar el pedido #PED-${pedidoId} como ENTREGADO: ${error.message}`);
+        window.mostrarAlerta('error', `[ERROR] No se pudo marcar #PED-${pedidoId} como ENTREGADO: ${error.message}`);
         return;
     }
 
     pedido.estado = 'ENTREGADO';
 
-    // 2. Encontrar y liberar el dron asignado -> pasar a DISPONIBLE
+    // Localizar el dron asignado (o el primero EN_MISION como fallback)
     let dronLiberado = todosLosDrones.find(d => Number(d.id) === Number(pedido.dron_id));
     if (!dronLiberado) {
         dronLiberado = todosLosDrones.find(d => (d.estado || '').toUpperCase() === 'EN_MISION');
     }
 
+    let mensajeBateria = '';
     if (dronLiberado) {
+        const bateriaAntes = Number(dronLiberado.bateria ?? 100);
+        const bateriaDespues = Math.max(0, bateriaAntes - DESCARGA_BATERIA_POR_ENTREGA);
+
         dronLiberado.estado = 'DISPONIBLE';
-        localModifiedDrones[dronLiberado.id] = { estado: 'DISPONIBLE' };
+        dronLiberado.bateria = bateriaDespues;
+
+        localModifiedDrones[dronLiberado.id] = {
+            estado: 'DISPONIBLE',
+            bateria: bateriaDespues
+        };
+
+        mensajeBateria = ` Dron #${dronLiberado.id} liberado (batería ${bateriaAntes}% → ${bateriaDespues}%).`;
     }
 
-    // 3. El pedido queda visible como ENTREGADO y se borra solo a los pocos segundos
     programarOcultarPedido(pedido);
     guardarPersistencia();
 
@@ -321,19 +408,21 @@ window.confirmarEntrega = async function(pedidoId) {
     renderizarGrillaDrones();
     renderizarTablaPedidos();
 
-    const dronMsg = dronLiberado ? ` Dron #${dronLiberado.id} (${dronLiberado.modelo}) restaurado a DISPONIBLE (color verde).` : '';
-    window.mostrarAlerta('éxito', `[ENTREGA CONFIRMADA] Pedido #PED-${pedidoId} entregado exitosamente.${dronMsg}`);
+    window.mostrarAlerta('éxito', `[ENTREGA CONFIRMADA] Pedido #PED-${pedidoId}.${mensajeBateria}`);
 
-    // 4. Liberar el dron en el servicio de drones
+    // Sincronizar dron con el microservicio de drones
     if (dronLiberado) {
         try {
             await fetch(`${API_DRONES_URL}/${dronLiberado.id}/telemetria`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estado: 'DISPONIBLE' })
+                body: JSON.stringify({
+                    estado: 'DISPONIBLE',
+                    bateria: dronLiberado.bateria
+                })
             });
         } catch (err) {
-            console.warn('Servicio de drones offline', err);
+            console.warn('Servicio de drones offline (liberación)', err);
         }
     }
 };
