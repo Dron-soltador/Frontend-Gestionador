@@ -13,7 +13,7 @@
 | Índice de calidad de servicios | **15/100** (mínimo 50) |
 | Criterios cumplidos | **10/14** |
 | Aprobado (semáforo) | **NO** |
-| Código (LOC) | 954 |
+| Código (LOC) | 968 |
 | Archivos de código | 2 |
 | Tests (archivos) | 0 |
 | Cobertura de líneas | no aplica (frontend sin herramienta de cobertura E2E) |
@@ -27,7 +27,7 @@
 
 | Autor | Commits | Código (LOC) | Tests (LOC) | Docs (LOC) | Días activos | % del código |
 |---|---:|---:|---:|---:|---:|---:|
-| IkerSalinas | 5 | 1,560 | 0 | 107 | 6 | 100% |
+| IkerSalinas | 6 | 1,587 | 0 | 107 | 7 | 100% |
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis de calidad (que mira solo el estado de `main`)._
 
@@ -37,7 +37,7 @@
 
 | Alumno | Sesiones | Cumplimiento | Pausa | Recencia | IC | Nivel | Para subir de nivel |
 |---|--:|--:|--:|--:|--:|--|--|
-| IkerSalinas | 8 | 35% | 30 d | 14% | **25** | No aprueba | Cumplimiento 35% (mín. 50%); Recencia 14% (mín. 50%) |
+| IkerSalinas | 9 | 35% | 30 d | 100% | **37** | No aprueba | Cumplimiento 35% (mín. 50%) |
 
 > Para aprobar el IC: **2 sesiones por semana** sostenidas, sin pausas mayores a **10 días** y con actividad en las **últimas 2 semanas**. Se excluyen merges, bots y al docente. Zona horaria UTC-3.
 
@@ -59,7 +59,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Porcentaje de bloques de código repetidos (similitud) en el repositorio.
 - **Por qué importa:** Cada copia se mantiene por separado: un arreglo hay que repetirlo y los defectos se multiplican.
-- **Tu resultado:** **98.4%** de duplicación _(máximo 15%)_
+- **Tu resultado:** **100.0%** de duplicación _(máximo 15%)_
 - **Para investigar la causa:**
     - ¿El trabajo se repartió por pantallas o archivos y se integró copiando y pegando bloques?
     - ¿Qué zonas del sistema cambiaron juntas más de una vez (señal de lógica compartida)?
@@ -121,7 +121,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Complejidad ciclomática: cantidad de caminos posibles dentro de una función (condicionales, bucles, casos).
 - **Por qué importa:** Muchos caminos = difícil de seguir y de probar; suelen esconderse casos sin cubrir.
-- **Tu resultado:** **4** bloque(s) de complejidad alta _(máximo 5 por 1000 LOC (tenés 954 LOC))_
+- **Tu resultado:** **4** bloque(s) de complejidad alta _(máximo 5 por 1000 LOC (tenés 968 LOC))_
 
 ### 12. Funciones/métodos largos o con muchos parámetros (Tam) — OK
 
@@ -152,7 +152,7 @@ Criterios que hoy están en rojo y, para cada uno, una explicación breve de **c
 | Criterio | Resultado actual | Meta | Brecha | Cómo alcanzarlo |
 |---|---|---|---|---|
 | Índice de calidad de servicios (indice) | índice **15/100** | mínimo 50 | faltan 35 pts | El índice sólo penaliza lo que **excede** los umbrales de cada criterio: si tenés todo en verde, el índice es 100. Si está en rojo, mirá la columna **Brecha** y los criterios en rojo; corregí primero duplicación, SEC, SQL y capas. Meta del perfil exigente: ≥50. |
-| Duplicación (DRY) (duplicacion) | **98.4%** de duplicación | máximo 15% | sobran 83.4 pts | Ubicá los bloques repetidos con `jscpd` o SonarQube, llevá la lógica común a una función o módulo compartido y hacé que todos lo usen. Cada copia eliminada baja el porcentaje; meta ≤15%. |
+| Duplicación (DRY) (duplicacion) | **100.0%** de duplicación | máximo 15% | sobran 85.0 pts | Ubicá los bloques repetidos con `jscpd` o SonarQube, llevá la lógica común a una función o módulo compartido y hacé que todos lo usen. Cada copia eliminada baja el porcentaje; meta ≤15%. |
 | Separación en capas (capas) | **0** capa(s) detectada(s): ninguna | mínimo 2 capas (a partir de 150 LOC) | hoy 0; el mínimo es 2 | Separá el código en al menos 2 capas con responsabilidades claras: presentación (`routes/`, `controllers/`), lógica (`services/`, `domain/`) y datos (`models/`, `repositories/`). Mové cada archivo a la capa que le corresponde en vez de dejar todo en la raíz. |
 | Vistas del frontend (Vistas) | **0** vista(s)/componente(s) | mínimo 6 | faltan 6 vista(s) | Agregá las pantallas/componentes del enunciado que faltan y conectalas a la capa de servicios hasta llegar a 6 vistas. |
 
@@ -162,11 +162,11 @@ Criterios que hoy están en rojo y, para cada uno, una explicación breve de **c
 
 ## 6. Actividad en clase (miércoles y viernes)
 
-> Se consideran las **23 clases** del período (miércoles y viernes, según `config/constancia.json`; feriados y semanas sin clase descontados). `Commits` = commits de trabajo (no-merge); `Merges` = merges de PR (también son push). Los días sin actividad dicen **sin actividad**.
+> Se consideran las **26 clases** del período (miércoles y viernes, según `config/constancia.json`; feriados y semanas sin clase descontados). `Commits` = commits de trabajo (no-merge); `Merges` = merges de PR (también son push). Los días sin actividad dicen **sin actividad**.
 
 ### IkerSalinas
 
-**10/23 clases con actividad** · 15 commits · 13 merges
+**11/26 clases con actividad** · 17 commits · 15 merges
 
 | Fecha | Actividad | Repositorios | Commits / merges |
 |---|:--:|---|--:|
@@ -193,10 +193,13 @@ Criterios que hoy están en rojo y, para cada uno, una explicación breve de **c
 | 2026-10-23 | **Sí** | Frontend-Gestionador | 1 / 1 |
 | 2026-10-28 | No | sin actividad | 0 / 0 |
 | 2026-10-30 | **Sí** | Backend-Gestionador, Frontend-Gestionador | 2 / 3 |
+| 2026-11-04 | No | sin actividad | 0 / 0 |
+| 2026-11-06 | No | sin actividad | 0 / 0 |
+| 2026-11-11 | **Sí** | Frontend-Gestionador | 2 / 2 |
 
 ### MerceMaron
 
-**8/23 clases con actividad** · 18 commits · 12 merges
+**10/26 clases con actividad** · 22 commits · 16 merges
 
 | Fecha | Actividad | Repositorios | Commits / merges |
 |---|:--:|---|--:|
@@ -223,6 +226,9 @@ Criterios que hoy están en rojo y, para cada uno, una explicación breve de **c
 | 2026-10-23 | **Sí** | Frontend-Request | 1 / 0 |
 | 2026-10-28 | No | sin actividad | 0 / 0 |
 | 2026-10-30 | No | sin actividad | 0 / 0 |
+| 2026-11-04 | No | sin actividad | 0 / 0 |
+| 2026-11-06 | **Sí** | Backend-Request, Frontend-Request | 1 / 2 |
+| 2026-11-11 | **Sí** | Backend-Request, Frontend-Request | 3 / 2 |
 
 ## 7. Anexo: dónde mirar
 
