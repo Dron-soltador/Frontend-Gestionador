@@ -1,19 +1,27 @@
-﻿const API_URL = 'http://localhost:5001/drones';
-//correccion
+﻿const API_DRONES_URL = 'http://localhost:5001/drones';
+const API_DESPACHADOR_BASE = 'http://localhost:5002';
+const SEGUNDOS_PARA_OCULTAR = 5; // segundos que un pedido ENTREGADO sigue visible antes de borrarse
+const entregadosRecientes = new Map(); // id -> { pedido, timeoutId }
+
+// Persistencia local en navegador (localStorage)
+let localAddedDrones = JSON.parse(localStorage.getItem('localAddedDrones') || '[]');
+let localModifiedDrones = JSON.parse(localStorage.getItem('localModifiedDrones') || '{}');
+let localModifiedPedidos = JSON.parse(localStorage.getItem('localModifiedPedidos') || '{}');
+
+function guardarPersistencia() {
+    localStorage.setItem('localAddedDrones', JSON.stringify(localAddedDrones));
+    localStorage.setItem('localModifiedDrones', JSON.stringify(localModifiedDrones));
+    localStorage.setItem('localModifiedPedidos', JSON.stringify(localModifiedPedidos));
+}
+
 let mockDrones = [
     { id: 1, modelo: "DJI Matrice 300 RTK", capacidad_maxima_kg: 2.7, bateria: 85, estado: "DISPONIBLE" },
     { id: 2, modelo: "Flycart 30 Heavy", capacidad_maxima_kg: 30.0, bateria: 100, estado: "DISPONIBLE" },
     { id: 3, modelo: "Mavic 3 Enterprise", capacidad_maxima_kg: 0.9, bateria: 62, estado: "DISPONIBLE" }
 ];
 
-let mockPedidos = [
-    { id: 101, cliente: "Hospital Central", peso_kg: 1.2, estado: "PENDIENTE", dron_id: null },
-    { id: 102, cliente: "Farmacia San Martín", peso_kg: 18.5, estado: "PENDIENTE", dron_id: null },
-    { id: 103, cliente: "Supermercado Express", peso_kg: 45.0, estado: "PENDIENTE", dron_id: null }
-];
-
 let todosLosDrones = [...mockDrones];
-let todosLosPedidos = [...mockPedidos];
+let todosLosPedidos = [];
 let filtroActual = 'TODOS';
 
 window.cargarTodo = async function() {
@@ -66,50 +74,60 @@ window.cargarDrones = async function() {
     renderizarGrillaDrones();
 };
 
-// Cargar y fusionar pedidos con prioridad local
+// Cargar pedidos activos desde el despachador (GET /pedidos-activos)
 window.cargarPedidos = async function() {
     try {
-        const res = await fetch(API_PEDIDOS_URL);
-        if (res.ok) {
-            const data = await res.json();
-            const apiPedidos = Array.isArray(data) ? data : (data.data || data.pedidos || []);
-            if (apiPedidos.length > 0) {
-                let listaPedidos = apiPedidos.map(p => {
-                    const id = Number(p.id || p.pedido_id || p._id);
-                    let item = {
-                        id: id,
-                        cliente: p.cliente || p.destino || p.direccion || 'Cliente General',
-                        peso_kg: parseFloat(p.peso_kg ?? p.peso ?? 0),
-                        estado: (p.estado || 'PENDIENTE').toUpperCase(),
-                        dron_id: p.dron_id || null
-                    };
-                    if (localModifiedPedidos[id]) {
-                        item = { ...item, ...localModifiedPedidos[id] };
-                    }
-                    return item;
-                });
+        const res = await fetch(`${API_DESPACHADOR_BASE}/pedidos-activos`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const lista = Array.isArray(data) ? data : (data.data || data.pedidos || []);
 
-                Object.keys(localModifiedPedidos).forEach(lid => {
-                    const numId = Number(lid);
-                    if (!listaPedidos.some(p => Number(p.id) === numId)) {
-                        const mockP = mockPedidos.find(m => Number(m.id) === numId);
-                        if (mockP) {
-                            listaPedidos.push({ ...mockP, ...localModifiedPedidos[numId] });
-                        }
-                    }
-                });
-                todosLosPedidos = listaPedidos;
-            } else {
-                aplicarCambiosLocalesPedidos();
-            }
-        } else {
-            aplicarCambiosLocalesPedidos();
-        }
+        todosLosPedidos = lista.map(p => {
+            const id = Number(p.id);
+            return {
+                ...p,
+                id,
+                cliente: p.cliente || 'Cliente General',
+                peso_kg: parseFloat(p.peso_kg ?? 0),
+                estado: (p.estado || 'PENDIENTE').toUpperCase(),
+                // el despachador no devuelve dron_id: se recupera del localStorage
+                dron_id: p.dron_id ?? localModifiedPedidos[id]?.dron_id ?? null
+            };
+        });
     } catch (error) {
-        aplicarCambiosLocalesPedidos();
+        console.warn('Despachador offline, se conserva la ultima lista', error);
     }
     renderizarTablaPedidos();
 };
+
+// Llamada generica al despachador; lanza error si la respuesta no es 2xx
+async function llamarDespachador(ruta, metodo = 'PUT', body = null) {
+    const opciones = { method: metodo, headers: { 'Content-Type': 'application/json' } };
+    if (body) opciones.body = JSON.stringify(body);
+    const res = await fetch(`${API_DESPACHADOR_BASE}${ruta}`, opciones);
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json().catch(() => ({}));
+}
+
+// Deja visible el pedido ENTREGADO unos segundos y luego lo borra de la tabla
+function programarOcultarPedido(pedido) {
+    const id = Number(pedido.id);
+    const previo = entregadosRecientes.get(id);
+    if (previo) clearTimeout(previo.timeoutId);
+
+    const timeoutId = setTimeout(() => {
+        entregadosRecientes.delete(id);
+        todosLosPedidos = todosLosPedidos.filter(p => Number(p.id) !== id);
+        delete localModifiedPedidos[id];
+        guardarPersistencia();
+        renderizarTablaPedidos();
+    }, SEGUNDOS_PARA_OCULTAR * 1000);
+
+    entregadosRecientes.set(id, { pedido: { ...pedido, estado: 'ENTREGADO' }, timeoutId });
+}
 
 function aplicarCambiosLocalesDrones() {
     let lista = mockDrones.map(drone => {
@@ -126,15 +144,6 @@ function aplicarCambiosLocalesDrones() {
     });
 
     todosLosDrones = lista;
-}
-
-function aplicarCambiosLocalesPedidos() {
-    todosLosPedidos = mockPedidos.map(p => {
-        const id = Number(p.id);
-        let item = { ...p };
-        if (localModifiedPedidos[id]) item = { ...item, ...localModifiedPedidos[id] };
-        return item;
-    });
 }
 
 function actualizarIndicadorConexion(exitoso) {
@@ -167,15 +176,23 @@ function renderizarTablaPedidos() {
     if (!tbody) return;
 
     tbody.innerHTML = '';
-    const activos = todosLosPedidos.filter(p => ['PENDIENTE', 'EN_CAMINO'].includes((p.estado || '').toUpperCase()));
+
+    // pedidos del servidor + los recien entregados (visibles hasta que venza el timeout)
+    const idsRecientes = new Set(entregadosRecientes.keys());
+    const listaPedidos = [
+        ...todosLosPedidos.filter(p => !idsRecientes.has(Number(p.id))),
+        ...[...entregadosRecientes.values()].map(e => e.pedido)
+    ].sort((a, b) => Number(a.id) - Number(b.id));
+
+    const activos = listaPedidos.filter(p => ['PENDIENTE', 'EN_CAMINO'].includes((p.estado || '').toUpperCase()));
     if (badgeCount) badgeCount.innerText = `${activos.length} Activos`;
 
-    if (todosLosPedidos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No hay solicitudes de envíos registradas.</td></tr>`;
+    if (listaPedidos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No hay pedidos para despachar.</td></tr>`;
         return;
     }
 
-    todosLosPedidos.forEach(pedido => {
+    listaPedidos.forEach(pedido => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-800/50 transition-colors";
 
@@ -221,7 +238,7 @@ function renderizarTablaPedidos() {
     });
 }
 
-// ASIGNAR DRON A PEDIDO
+// ASIGNAR DRON A PEDIDO -> el despachador lo pasa a EN_CAMINO
 window.asignarDron = async function(pedidoId) {
     const pedido = todosLosPedidos.find(p => Number(p.id) === Number(pedidoId));
     if (!pedido) return;
@@ -241,13 +258,22 @@ window.asignarDron = async function(pedidoId) {
         return;
     }
 
-    // APLICAR CAMBIOS LOCALES Y GUARDAR EN PERSISTENCIA DE INMEDIATO
+    // Primero el backend; solo si responde bien se actualiza la pantalla
+    try {
+        await llamarDespachador('/despachar', 'POST', { pedido_id: pedidoId, dron_id: dronApto.id });
+        await llamarDespachador(`/pedidos/${pedidoId}/en-camino`);
+    } catch (error) {
+        console.warn('Error del despachador', error);
+        window.mostrarAlerta('error', `[ERROR] No se pudo despachar el pedido #PED-${pedidoId}: ${error.message}`);
+        return;
+    }
+
     dronApto.estado = 'EN_MISION';
     localModifiedDrones[dronApto.id] = { estado: 'EN_MISION' };
 
     pedido.estado = 'EN_CAMINO';
     pedido.dron_id = dronApto.id;
-    localModifiedPedidos[pedidoId] = { estado: 'EN_CAMINO', dron_id: dronApto.id };
+    localModifiedPedidos[pedidoId] = { dron_id: dronApto.id };
 
     guardarPersistencia();
 
@@ -256,28 +282,25 @@ window.asignarDron = async function(pedidoId) {
     renderizarTablaPedidos();
 
     window.mostrarAlerta('éxito', `[ÉXITO] Dron #${dronApto.id} (${dronApto.modelo}) asignado al pedido #PED-${pedidoId}.`);
-
-    try {
-        await fetch(API_DESPACHADOR_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pedido_id: pedidoId, dron_id: dronApto.id })
-        });
-    } catch (error) {
-        console.warn('Backend despachador offline', error);
-    }
 };
 
-// CONFIRMAR ENTREGA Y LIBERAR DRON
+// CONFIRMAR ENTREGA, LIBERAR DRON Y BORRAR EL PEDIDO DESPUES DE UNOS SEGUNDOS
 window.confirmarEntrega = async function(pedidoId) {
     const pedido = todosLosPedidos.find(p => Number(p.id) === Number(pedidoId));
     if (!pedido) return;
 
     window.ocultarAlerta();
 
-    // 1. Marcar pedido como ENTREGADO
+    // 1. Marcar ENTREGADO en el despachador (que actualiza la API remota)
+    try {
+        await llamarDespachador(`/pedidos/${pedidoId}/entregar`);
+    } catch (error) {
+        console.warn('Error del despachador', error);
+        window.mostrarAlerta('error', `[ERROR] No se pudo marcar el pedido #PED-${pedidoId} como ENTREGADO: ${error.message}`);
+        return;
+    }
+
     pedido.estado = 'ENTREGADO';
-    localModifiedPedidos[pedidoId] = { estado: 'ENTREGADO', dron_id: pedido.dron_id };
 
     // 2. Encontrar y liberar el dron asignado -> pasar a DISPONIBLE
     let dronLiberado = todosLosDrones.find(d => Number(d.id) === Number(pedido.dron_id));
@@ -290,7 +313,8 @@ window.confirmarEntrega = async function(pedidoId) {
         localModifiedDrones[dronLiberado.id] = { estado: 'DISPONIBLE' };
     }
 
-    // 3. Guardar persistencia permanente
+    // 3. El pedido queda visible como ENTREGADO y se borra solo a los pocos segundos
+    programarOcultarPedido(pedido);
     guardarPersistencia();
 
     actualizarEstadisticas();
@@ -300,21 +324,17 @@ window.confirmarEntrega = async function(pedidoId) {
     const dronMsg = dronLiberado ? ` Dron #${dronLiberado.id} (${dronLiberado.modelo}) restaurado a DISPONIBLE (color verde).` : '';
     window.mostrarAlerta('éxito', `[ENTREGA CONFIRMADA] Pedido #PED-${pedidoId} entregado exitosamente.${dronMsg}`);
 
-    try {
-        if (dronLiberado) {
+    // 4. Liberar el dron en el servicio de drones
+    if (dronLiberado) {
+        try {
             await fetch(`${API_DRONES_URL}/${dronLiberado.id}/telemetria`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ estado: 'DISPONIBLE' })
             });
+        } catch (err) {
+            console.warn('Servicio de drones offline', err);
         }
-        await fetch(`${API_PEDIDOS_URL}/${pedidoId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: 'ENTREGADO' })
-        });
-    } catch (err) {
-        console.warn('Backend offline, cambios guardados en localStorage', err);
     }
 };
 
