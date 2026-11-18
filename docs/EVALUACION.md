@@ -236,18 +236,22 @@ Criterios que hoy están en rojo y, para cada uno, una explicación breve de **c
 
 **Fuera de clase:** sin actividad registrada.
 
-## 7. Anexo: dónde mirar
+## 7. Anexo: archivos donde se originan los problemas
 
-Archivos donde el análisis encontró cada señal en rojo (sin número de línea, a propósito):
+Se listan los archivos y líneas que el análisis marca para cada criterio en rojo. Para **duplicación** se muestran los archivos con más líneas repetidas; para **cobertura**, las unidades por debajo del umbral.
 
-**Separación en capas (capas)** — 1 archivo(s):
-- `-`
+**Separación en capas (capas)** — _sin archivo asociado (estructura global)._
 
-**Complejidad alta (Compl)** — 3 archivo(s):
-- `servicios/pedidos.js`
-- `vistas/vistaGrillaDrones.js`
-- `vistas/vistaModalAsignar.js`
+**Complejidad alta (Compl)** — 7 hallazgo(s) en 3 archivo(s):
+
+| Archivo | Línea(s) | Señal |
+|---|---|---|
+| `servicios/pedidos.js` | 13 | función 'normalizarPedido' con complejidad 7 |
+| `vistas/vistaGrillaDrones.js` | 22, 35 | función 'coincideConFiltro' con complejidad 6 |
+| `vistas/vistaModalAsignar.js` | 16, 32, 97, 110 | función 'motivosRechazo' con complejidad 6 |
+
+**Vistas del frontend (Vistas)** — _sin archivo asociado (es un conteo)._
 
 ---
-_Informe generado por la cátedra. Los umbrales corresponden al perfil `exigente`. Ante dudas, revisá el archivo señalado y el criterio en `CRITERIOS-CALIDAD.md`._
+_Informe generado por la cátedra. Los umbrales corresponden al perfil `exigente`. Ante dudas, revisá el archivo y la línea señalados y el criterio en `CRITERIOS-CALIDAD.md`._
 <!-- evaluacion:fin -->
