@@ -240,17 +240,30 @@ Criterios que hoy están en rojo y, para cada uno, una explicación breve de **c
 
 ## 7. Anexo: archivos donde se originan los problemas
 
-Se listan los archivos y líneas que el análisis marca para cada criterio en rojo. Para **duplicación** se muestran los archivos con más líneas repetidas; para **cobertura**, las unidades por debajo del umbral.
+Se listan **todos** los archivos y líneas que el análisis marca para cada criterio en rojo. Para **duplicación** se muestran los archivos con líneas repetidas; para **cobertura**, las unidades por debajo del umbral.
 
-**Separación en capas (capas)** — _sin archivo asociado (estructura global)._
+**Resumen por archivo** — archivos con más hallazgos:
+
+| Archivo | Hallazgos | Peso total | Señales |
+|---|---:|---:|---|
+| `vistas/vistaModalAsignar.js` | 6 | 28 | high_complexity, long_function |
+| `vistas/vistaGrillaDrones.js` | 3 | 14 | high_complexity, long_function |
+| `servicios/pedidos.js` | 1 | 5 | high_complexity |
+| `vistas/vistaEntrega.js` | 1 | 4 | long_function |
+| `vistas/vistaModalRegistrar.js` | 1 | 4 | long_function |
+| `vistas/vistaTablaPedidos.js` | 1 | 4 | long_function |
+
+**Separación en capas (capas)** — estructura global:
+
+- Capas detectadas: **ninguna** (se exigen al menos **2**).
 
 **Complejidad alta (Compl)** — 7 hallazgo(s) en 3 archivo(s):
 
-| Archivo | Línea(s) | Señal |
-|---|---|---|
-| `servicios/pedidos.js` | 13 | función 'normalizarPedido' con complejidad 7 |
-| `vistas/vistaGrillaDrones.js` | 22, 35 | función 'coincideConFiltro' con complejidad 6 |
-| `vistas/vistaModalAsignar.js` | 16, 32, 97, 110 | función 'motivosRechazo' con complejidad 6 |
+| Archivo | Línea(s) | Señal | Detalle |
+|---|---|---|---|
+| `servicios/pedidos.js` | 13 | high_complexity | función 'normalizarPedido' con complejidad 7 |
+| `vistas/vistaGrillaDrones.js` | 22, 35 | high_complexity | función 'coincideConFiltro' con complejidad 6 |
+| `vistas/vistaModalAsignar.js` | 16, 32, 97, 110 | high_complexity | función 'motivosRechazo' con complejidad 6 |
 
 **Vistas del frontend (Vistas)** — _sin archivo asociado (es un conteo)._
 
